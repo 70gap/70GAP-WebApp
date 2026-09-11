@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>70GAP 改訂版</title>
+<style>
+:root{--g:#216b36;--bg:#f3f6f4;--line:#d7dfda;--red:#b43e3e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172019;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+header{background:var(--g);color:#fff;padding:16px;text-align:center;font-size:24px;font-weight:900}.sub{font-size:12px;font-weight:400;margin-top:4px}
+main{max-width:900px;margin:auto;padding:12px}.page{display:none}.page.active{display:block}
+.card,.menu{background:#fff;border-radius:16px;padding:15px;margin:10px 0;box-shadow:0 2px 10px #0000000d}
+.menu{cursor:pointer;border-left:7px solid var(--g)}.menu h2{margin:0 0 5px;font-size:20px}
+button{border:0;border-radius:9px;padding:10px 13px;margin:4px 2px 4px 0;background:var(--g);color:#fff;font:inherit;font-weight:800}
+.gray{background:#68746c}.red{background:var(--red)}.hit{background:#16783b}.back{width:100%;margin-bottom:8px}
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #cbd5cf;border-radius:9px;font:inherit;background:#fff}
+textarea{min-height:240px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}@media(max-width:680px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:13px;font-weight:800}.small{font-size:12px;color:#5c6860}.notice{background:#fff7d7;border-left:5px solid #d5a900;padding:10px;border-radius:9px;font-size:13px;line-height:1.55}
+.tag{display:inline-block;border-radius:16px;padding:5px 9px;background:#edf0ee;font-size:12px;font-weight:900;margin:2px}.buytag{background:#dff2e3}
+.race{border:1px solid var(--line);border-radius:12px;padding:11px;margin:9px 0}.buybox{border-left:6px solid var(--g)}
+table{border-collapse:collapse;width:100%;font-size:12px;margin-top:8px}td,th{border:1px solid var(--line);padding:5px;text-align:center}th{background:#edf3ee}
+.bet{background:#f5f8f6;border-radius:9px;padding:9px;margin-top:8px;font-size:13px;line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.stat{background:#f2f6f3;border-radius:10px;padding:10px}.big{font-size:20px;font-weight:900}.hidden{display:none}
+</style>
+</head>
+<body>
+<header>70GAP<div class="sub">改訂版｜解析・選定・購入・保存・分析</div></header>
+<main>
+
+<section id="home" class="page active">
+<div class="menu" onclick="go('parse')"><h2>📋 日刊コンピ解析</h2><div>日付・開催地を選択して指数表をコピペ</div></div>
+<div class="menu" onclick="go('select')"><h2>🏷 本日の選定結果</h2><div>73B⑧などのタグと購入／非購入</div></div>
+<div class="menu" onclick="go('buy')"><h2>🎯 本日の購入レース</h2><div>馬連・高配当3連複・上位決着／結果入力</div></div>
+<div class="menu" onclick="go('stats')"><h2>📊 成績・収支</h2><div>日別・週間・月間・年間</div></div>
+<div class="menu" onclick="go('history')"><h2>📚 過去レース</h2><div>過去データを後から追加・削除</div></div>
+<div class="menu" onclick="go('analysis')"><h2>📈 データ分析</h2><div>条件別・⑥⑦⑧別・開催地別・購入方式別</div></div>
+</section>
+
+<section id="parse" class="page">
+<button class="back gray" onclick="go('home')">← トップへ戻る</button>
+<div class="card"><h2>📋 日刊コンピ解析</h2>
+<div class="grid">
+<label>日付<input id="date" type="date"></label>
+<label>開催地<select id="place"><option>園田</option><option>浦和</option><option>船橋</option><option>大井</option><option>川崎</option><option>笠松</option><option>名古屋</option><option>金沢</option><option>高知</option><option>佐賀</option><option>門別</option><option>盛岡</option><option>水沢</option></select></label>
+</div>
+<div class="notice">日刊コンピ一覧を1R〜最終Rまで貼り付けます。<br>「指数　9 / 90　6 / 64　1 …」形式を <b>9番90 → 6番64 → 1番61…</b> の馬番・指数ペアとして復元します。</div>
+<textarea id="paste" placeholder="ここに日刊コンピ一覧を貼り付け"></textarea>
+<button onclick="parseAll()">🔍 解析・選定開始</button><button class="gray" onclick="$('paste').value=''">🗑 クリア</button>
+<div id="status" class="small"></div></div>
+</section>
+
+<section id="select" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>🏷 本日の選定結果</h2><div id="tags">まだ解析されていません。</div><div id="detail"></div></div></section>
+<section id="buy" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>🎯 本日の購入レース</h2><div id="buys">購入レースはありません。</div></div></section>
+<section id="stats" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>📊 成績・収支</h2><button onclick="showStats('today')">今日</button><button onclick="showStats('week')">週間</button><button onclick="showStats('month')">月間</button><button onclick="showStats('year')">年間</button><div id="statbox"></div></div></section>
+
+<section id="history" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>📚 過去レース</h2><button onclick="$('addbox').classList.toggle('hidden')">➕ 過去レースを追加</button>
+<div id="addbox" class="hidden"><div class="grid">
+<label>日付<input id="hdate" type="date"></label><label>開催地<input id="hplace" placeholder="園田"></label>
+<label>レース番号<input id="hrace" type="number"></label><label>条件<input id="hpattern" placeholder="73B⑧"></label>
+<label>購入方式<select id="htype"><option>馬連</option><option>高配当3連複</option><option>上位決着</option></select></label>
+<label>購入額<input id="hstake" type="number" value="1000"></label>
+<label>結果<select id="hresult"><option value="">未入力</option><option value="hit">的中</option><option value="miss">不的中</option></select></label>
+<label>払戻額<input id="hpayout" type="number" value="0"></label>
+</div><button onclick="addHistory()">保存</button></div><div id="historylist"></div></div></section>
+
+<section id="analysis" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>📈 データ分析</h2><div id="analysisbox"></div></div></section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id),KEY='70GAP_REVISION_MENU_V1';
+$('date').value=new Date().toISOString().slice(0,10);$('hdate').value=$('date').value;
+let current=[];
+function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');if(id==='buy')renderBuys();if(id==='stats')showStats('today');if(id==='history')renderHistory();if(id==='analysis')renderAnalysis();}
+function getData(){return JSON.parse(localStorage.getItem(KEY)||'[]')}function saveData(a){localStorage.setItem(KEY,JSON.stringify(a))}
+function splitRaces(t){let m=[...t.matchAll(/(?:^|\n)\s*(\d{1,2})\s*R\s*(?:\n|$)/g)];return m.map((x,i)=>({race:+x[1],text:t.slice(x.index,i+1<m.length?m[i+1].index:t.length)}))}
+function parseBlock(b){let l=b.text.split(/\r?\n/),s=l.findIndex(x=>x.includes('馬番'));if(s<0)return[];let n=[];for(let i=s+1;i<l.length;i++)n.push(...((l[i].match(/\d+/g)||[]).map(Number)));let a=[];for(let i=0;i+1<n.length;i+=2){let h=n[i],ix=n[i+1];if(h>=1&&h<=18&&ix>=40&&ix<=99)a.push({horse:h,index:ix})}let seen=new Set();return a.filter(x=>!seen.has(x.horse)&&seen.add(x.horse)).sort((x,y)=>y.index-x.index)}
+function end50(a){let z=0;a.forEach((x,i)=>{if(Math.floor(x.index/10)===5)z=i+1});return z}
+function pattern(a){if(a.length<5)return null;let b=a.map(x=>Math.floor(x.index/10)),e=end50(a);if(![5,6,7,8].includes(e))return null;let rules=[['73A',[7,7,6,5]],['74A',[7,7,6,6,5]],['73B',[7,6,6,5]],['74B',[7,6,6,6,5]],['83B',[8,6,6,5]],['84B',[8,6,6,6,5]]];for(const [n,r] of rules)if(r.every((v,i)=>b[i]===v))return n;return null}
+function buyType(a,p){if(!p||a.length<9)return null;let g45=a[3].index-a[4].index,g59=a[4].index-a[8].index;if(a[2].index<=64&&g45>=3&&g45<=9&&g59<=10)return'高配当3連複';if(g59>=11)return'上位決着';return null}
+function label(x){let q=['','','','','','⑤','⑥','⑦','⑧'];return x.pattern?(x.pattern+(q[x.end]||'')):'非該当'}
+function parseAll(){let b=splitRaces($('paste').value.trim());current=b.map(x=>{let a=parseBlock(x),p=pattern(a);return{race:x.race,arr:a,pattern:p,end:end50(a),type:buyType(a,p)}});$('status').textContent=b.length+'レースを解析しました。';storePurchases();renderSelect();go('select')}
+function storePurchases(){let d=getData(),date=$('date').value,place=$('place').value;current.filter(x=>x.type).forEach(x=>{let i=d.findIndex(v=>v.date===date&&v.place===place&&v.race===x.race);let old=i>=0?d[i]:{};let o={date,place,race:x.race,pattern:label(x),type:x.type,stake:old.stake??(x.type==='高配当3連複'?3000:x.type==='馬連'?1000:2000),hit:old.hit??null,payout:old.payout??0,arr:x.arr};if(i>=0)d[i]=o;else d.push(o)});saveData(d)}
+function renderSelect(){let p=$('place').value;$('tags').innerHTML=current.map(x=>`<span class="tag ${x.type?'buytag':''}">${p}${x.race}R ${label(x)} ${x.type?'🟢 '+x.type:'⚪ 非購入'}</span>`).join('');$('detail').innerHTML=current.map(x=>`<div class="race ${x.type?'buybox':''}"><b>${p}${x.race}R　${label(x)}　${x.type||'非購入'}</b><table><tr><th>順位</th>${x.arr.slice(0,9).map((_,i)=>'<th>'+(i+1)+'位</th>').join('')}</tr><tr><th>馬番</th>${x.arr.slice(0,9).map(v=>'<td>'+v.horse+'</td>').join('')}</tr><tr><th>指数</th>${x.arr.slice(0,9).map(v=>'<td>'+v.index+'</td>').join('')}</tr></table></div>`).join('')}
+function bet(x){
+ let a=x.arr;if(!a||!a.length)return'買い目データなし';
+ let top=[1,2,3,4].map(i=>a[i-1]?.horse).filter(Boolean);
+ let third=[6,7,8,9].map(i=>a[i-1]?.horse).filter(Boolean);
+ let last=a[4]?[a[4].horse,...third]:third;
+ let B=[2,3,4].map(i=>a[i-1]?.horse).filter(Boolean);
+ let C=[4,5].map(i=>a[i-1]?.horse).filter(Boolean);
+ let B4=[2,3,4,5].map(i=>a[i-1]?.horse).filter(Boolean);
+ if(x.type==='高配当3連複')return `【高配当3連複】
+1列目：${top.join('・')}（1〜4位）
+2列目：${top.join('・')}（1〜4位）
+3列目：${last.join('・')}（5〜9位）
+
+フォーメーション：
+${top.join('・')} − ${top.join('・')} − ${last.join('・')}`;
+ if(x.type==='上位決着')return `【上位決着】
+■ 3連単（3T）
+${a[0]?.horse} → ${B.join('・')} → ${C.join('・')}
+${a[0]?.horse} → ${C.join('・')} → ${B.join('・')}
+${B.join('・')} → ${a[0]?.horse} → ${C.join('・')}
+
+■ 3連複（3F）
+${B.join('・')} BOX
+${B4.join('・')} BOX`;
+ return '';
+}
+function renderBuys(){let a=getData().filter(x=>x.date===$('date').value);$('buys').innerHTML=a.length?a.map(x=>`<div class="race buybox"><b>${x.place}${x.race}R　${x.pattern}　${x.type}</b><div class="bet">${bet(x)}</div><label>払戻額<input id="pay_${x.place}_${x.race}" type="number" value="${x.payout||''}"></label><button class="hit" onclick="result('${x.place}',${x.race},true)">◯ 的中</button><button class="red" onclick="result('${x.place}',${x.race},false)">× 不的中</button><button class="gray" onclick="editRecord('${x.place}',${x.race})">✏️ 訂正</button><button class="red" onclick="deleteRecord('${x.place}',${x.race})">🗑 削除</button><div class="small">購入 ${x.stake.toLocaleString()}円｜収支 ${((x.payout||0)-x.stake).toLocaleString()}円</div></div>`).join(''):'購入レースはありません。'}
+window.result=(place,race,hit)=>{let a=getData(),i=a.findIndex(x=>x.date===$('date').value&&x.place===place&&x.race===race),p=hit?+($('pay_'+place+'_'+race).value||0):0;if(hit&&!p){alert('払戻額を入力してください');return}a[i].hit=hit;a[i].payout=p;saveData(a);renderBuys()}
+window.editRecord=(place,race)=>{let x=getData().find(v=>v.date===$('date').value&&v.place===place&&v.race===race);if(!x)return;$('hdate').value=x.date;$('hplace').value=x.place;$('hrace').value=x.race;$('hpattern').value=x.pattern;$('htype').value=x.type;$('hstake').value=x.stake;$('hresult').value=x.hit===true?'hit':x.hit===false?'miss':'';$('hpayout').value=x.payout;$('addbox').classList.remove('hidden');go('history')};window.deleteRecord=(place,race)=>{if(!confirm('このレースを削除しますか？'))return;saveData(getData().filter(x=>!(x.date===$('date').value&&x.place===place&&x.race===race)));renderBuys();renderHistory()};
+function calc(a){let decided=a.filter(x=>x.hit!==null),hits=a.filter(x=>x.hit===true).length,s=a.reduce((z,x)=>z+x.stake,0),p=a.reduce((z,x)=>z+(x.payout||0),0);return `<div class="stats"><div class="stat">購入R<div class="big">${a.length}</div></div><div class="stat">的中率<div class="big">${decided.length?(hits/decided.length*100).toFixed(1):'0.0'}%</div></div><div class="stat">購入額<div class="big">${s.toLocaleString()}円</div></div><div class="stat">払戻額<div class="big">${p.toLocaleString()}円</div></div><div class="stat">収支<div class="big">${(p-s>=0?'+':'')+(p-s).toLocaleString()}円</div></div><div class="stat">回収率<div class="big">${s?(p/s*100).toFixed(1):'0.0'}%</div></div></div>`}
+function showStats(mode){let a=getData(),dt=new Date($('date').value+'T00:00:00');if(mode==='today')a=a.filter(x=>x.date===$('date').value);if(mode==='week'){let st=new Date(dt);st.setDate(dt.getDate()-((dt.getDay()+6)%7));let en=new Date(st);en.setDate(st.getDate()+7);a=a.filter(x=>{let d=new Date(x.date+'T00:00:00');return d>=st&&d<en})}if(mode==='month')a=a.filter(x=>x.date.slice(0,7)===$('date').value.slice(0,7));if(mode==='year')a=a.filter(x=>x.date.slice(0,4)===$('date').value.slice(0,4));$('statbox').innerHTML=calc(a)}
+function addHistory(){let d=getData(),r=$('hresult').value,o={date:$('hdate').value,place:$('hplace').value,race:+$('hrace').value,pattern:$('hpattern').value,type:$('htype').value,stake:+$('hstake').value||0,hit:r==='hit'?true:r==='miss'?false:null,payout:+$('hpayout').value||0,arr:[]};if(!o.date||!o.place||!o.race){alert('日付・開催地・レース番号を入力してください');return}d.push(o);saveData(d);$('addbox').classList.add('hidden');renderHistory()}
+function renderHistory(){let a=getData();$('historylist').innerHTML=a.length?a.map((x,i)=>`<div class="race"><b>${x.date} ${x.place}${x.race}R ${x.pattern}</b><br>${x.type}｜${x.hit===true?'◯ 的中':x.hit===false?'× 不的中':'未入力'}｜購入 ${x.stake}円｜払戻 ${x.payout}円 <button class="gray" onclick="editHistory(${i})">✏️ 訂正</button><button class="red" onclick="deleteHistory(${i})">🗑 削除</button></div>`).join(''):'保存データはありません。'}
+window.editHistory=i=>{let x=getData()[i];$('hdate').value=x.date;$('hplace').value=x.place;$('hrace').value=x.race;$('hpattern').value=x.pattern;$('htype').value=x.type;$('hstake').value=x.stake;$('hresult').value=x.hit===true?'hit':x.hit===false?'miss':'';$('hpayout').value=x.payout;$('addbox').classList.remove('hidden')};window.deleteHistory=i=>{let a=getData();a.splice(i,1);saveData(a);renderHistory()}
+function grouped(a,fn){let m={};a.forEach(x=>{let k=fn(x);(m[k]??=[]).push(x)});return Object.entries(m).map(([k,v])=>`<div class="race"><b>${k}</b>${calc(v)}</div>`).join('')}
+function renderAnalysis(){let a=getData();$('analysisbox').innerHTML='<h3>条件別</h3>'+grouped(a,x=>x.pattern.replace(/[⑤⑥⑦⑧]$/,''))+'<h3>⑥⑦⑧別</h3>'+grouped(a,x=>(x.pattern.match(/[⑤⑥⑦⑧]$/)||['その他'])[0])+'<h3>開催地別</h3>'+grouped(a,x=>x.place)+'<h3>購入方式別</h3>'+grouped(a,x=>x.type)}
+</script>
+</body></html>
