@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>70GAP 条件研究・ベータ検証 完成版 v2</title>
+<style>
+:root{--g:#216b36;--bg:#f3f6f4;--line:#d7dfda;--red:#b43e3e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#172019;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
+header{background:var(--g);color:#fff;padding:16px;text-align:center;font-size:24px;font-weight:900}.sub{font-size:12px;font-weight:400;margin-top:4px}
+main{max-width:900px;margin:auto;padding:12px}.page{display:none}.page.active{display:block}
+.card,.menu{background:#fff;border-radius:16px;padding:15px;margin:10px 0;box-shadow:0 2px 10px #0000000d}
+.menu{cursor:pointer;border-left:7px solid var(--g)}.menu h2{margin:0 0 5px;font-size:20px}
+button{border:0;border-radius:9px;padding:10px 13px;margin:4px 2px 4px 0;background:var(--g);color:#fff;font:inherit;font-weight:800}
+.gray{background:#68746c}.red{background:var(--red)}.hit{background:#16783b}.back{width:100%;margin-bottom:8px}
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #cbd5cf;border-radius:9px;font:inherit;background:#fff}
+textarea{min-height:240px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}@media(max-width:680px){.grid{grid-template-columns:1fr}}
+label{display:block;font-size:13px;font-weight:800}.small{font-size:12px;color:#5c6860}.notice{background:#fff7d7;border-left:5px solid #d5a900;padding:10px;border-radius:9px;font-size:13px;line-height:1.55}
+.tag{display:inline-block;border-radius:16px;padding:5px 9px;background:#edf0ee;font-size:12px;font-weight:900;margin:2px}.buytag{background:#dff2e3}
+.race{border:1px solid var(--line);border-radius:12px;padding:11px;margin:9px 0}.buybox{border-left:6px solid var(--g)}
+table{border-collapse:collapse;width:100%;font-size:12px;margin-top:8px}td,th{border:1px solid var(--line);padding:5px;text-align:center}th{background:#edf3ee}
+.bet{background:#f5f8f6;border-radius:9px;padding:9px;margin-top:8px;font-size:13px;line-height:1.6}
+.indexModal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:12px}.indexModal .modalBox{background:#fff;border-radius:14px;max-width:900px;width:100%;max-height:90vh;overflow:auto;padding:14px}.checkgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}.check{padding:6px 8px;border-radius:8px;background:#f3f5f4;font-size:12px}.check.ok{background:#e4f5e9;color:#087a35}.check.no{background:#f5f5f5;color:#777}.mini{font-size:11px;color:#666}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.stat{background:#f2f6f3;border-radius:10px;padding:10px}.big{font-size:20px;font-weight:900}.hidden{display:none}
+.placegroup{margin:10px 0 4px;padding:7px 9px;border-radius:8px;background:#eef6ff;font-weight:700}</style>
+</head>
+<body>
+<header>70GAP<div class="sub">条件研究・ベータ検証 完成版 v2</div></header>
+<main>
+
+<section id="home" class="page active">
+<div class="notice" style="margin-bottom:10px;border-left:6px solid #216b36"><b>🧪 条件研究・ベータ検証が使えます</b><br>新しい攻略法を登録して、保存済みの過去データを使って検証できます。</div>
+
+<div class="menu" onclick="go('parse')"><h2>📋 日刊コンピ解析</h2><div>日付・開催地を選択して指数表をコピペ</div></div>
+<div class="menu" onclick="go('select')"><h2>🏷 本日の選定結果</h2><div>73B⑧などのタグと購入／非購入</div></div>
+<div class="menu" onclick="go('buy')"><h2>🎯 本日の購入レース</h2><div>馬連・高配当3連複・上位決着／結果入力</div></div>
+<div class="menu" onclick="go('stats')"><h2>📊 成績・収支</h2><div>日別・週間・月間・年間</div></div>
+<div class="menu" onclick="go('history')"><h2>📚 過去レース</h2><div>過去データを後から追加・削除</div></div>
+<div class="menu" onclick="go('analysis')"><h2>📈 データ分析</h2><div>条件別・⑥⑦⑧別・開催地別・購入方式別</div></div>
+<div class="menu" onclick="go('beta')" style="border-left-color:#d5a900"><h2>🧪 条件研究・ベータ検証</h2><div><b>新しい攻略法を追加 → 過去データで即検証</b></div></div>
+
+<div class="menu" onclick="go('resultImport')"><h2>📥 結果一括取込</h2><div>1開催場・1日分の結果をまとめて貼り付け</div></div>
+<div class="menu" onclick="go('backup')"><h2>💾 JSONバックアップ</h2><div>保存・復元</div></div>
+</section>
+
+<section id="parse" class="page">
+<button class="back gray" onclick="go('home')">← トップへ戻る</button>
+<div class="card"><h2>📋 日刊コンピ解析</h2>
+<div class="grid">
+<label>日付<input id="date" type="date"></label>
+<label>開催地<select id="place"><option>園田</option><option>浦和</option><option>船橋</option><option>大井</option><option>川崎</option><option>笠松</option><option>名古屋</option><option>金沢</option><option>高知</option><option>佐賀</option><option>門別</option><option>盛岡</option><option>水沢</option></select></label>
+</div>
+<div class="notice">日刊コンピ一覧を1R〜最終Rまで貼り付けます。<br>「指数　9 / 90　6 / 64　1 …」形式を <b>9番90 → 6番64 → 1番61…</b> の馬番・指数ペアとして復元します。</div>
+<textarea id="paste" placeholder="ここに日刊コンピ一覧を貼り付け"></textarea>
+<button onclick="parseAll()">🔍 解析・選定開始</button><button class="gray" onclick="$('paste').value=''">🗑 クリア</button>
+<div id="status" class="small"></div></div>
+</section>
+
+<section id="select" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>🏷 本日の選定結果</h2><div class="grid"><label>表示日付<input id="selectDate" type="date" onchange="renderSavedSelection()"></label><label>開催地（任意）<input id="selectPlace" placeholder="空欄＝全開催地" oninput="renderSavedSelection()"></label></div><div class="small">JSONを復元した後も、保存済みの過去日の選定結果を日付で表示できます。</div><div id="tags">まだ解析されていません。</div><div id="detail"></div></div></section>
+<section id="buy" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>🎯 本日の購入レース</h2><div id="buys">購入レースはありません。</div></div></section>
+<section id="stats" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>📊 成績・収支</h2><button onclick="showStats('today')">今日</button><button onclick="showStats('week')">週間</button><button onclick="showStats('month')">月間</button><button onclick="showStats('year')">年間</button><div id="statbox"></div></div></section>
+
+<section id="history" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>📚 過去レース</h2><button onclick="$('addbox').classList.toggle('hidden')">➕ 過去レースを追加</button>
+<div id="addbox" class="hidden"><div class="grid">
+<label>日付<input id="hdate" type="date"></label><label>開催地<input id="hplace" placeholder="園田"></label>
+<label>レース番号<input id="hrace" type="number"></label><label>条件<input id="hpattern" placeholder="73B⑧"></label>
+<label>購入方式<select id="htype"><option>馬連</option><option>高配当3連複</option><option>上位決着</option></select></label>
+<label>購入額<input id="hstake" type="number" value="1000"></label>
+<label>結果<select id="hresult"><option value="">未入力</option><option value="hit">的中</option><option value="miss">不的中</option></select></label>
+<label>払戻額<input id="hpayout" type="number" value="0"></label>
+</div><button onclick="addHistory()">保存</button></div><div id="historylist"></div></div></section>
+
+<section id="resultImport" class="page">
+<button class="back gray" onclick="go('home')">← トップへ戻る</button>
+<div class="card"><h2>📥 結果一括取込</h2>
+<div class="notice">地方競馬情報サイトの「当日払戻金」ページから、<b>開催場・1日分をまとめてコピー</b>して貼り付けます。1Rずつ貼る必要はありません。</div>
+<div class="grid"><label>日付<input id="riDate" type="date"></label><label>開催地<input id="riPlace" placeholder="例：高知"></label></div>
+<textarea id="riPaste" placeholder="ここに当日払戻金ページをまとめて貼り付け"></textarea>
+<button onclick="parseResults()">🔍 結果を解析</button><button class="gray" onclick="$('riPaste').value='';$('riStatus').textContent=''">🗑 クリア</button>
+<div id="riStatus" class="small"></div><div id="riPreview"></div>
+<button id="riApply" class="hit" disabled onclick="applyResults()">✅ 解析結果をJSONデータへ反映</button>
+</div></section>
+
+<section id="backup" class="page">
+<button class="back gray" onclick="go('home')">← トップへ戻る</button>
+<div class="card"><h2>💾 JSONバックアップ</h2>
+<div class="notice">現在の70GAPデータをJSONファイルとして保存できます。別端末・別ブラウザへ移す場合は、復元用JSONを読み込んでください。</div>
+<button onclick="exportJSON()">⬇️ JSONを書き出す</button>
+<label>JSONを復元<input id="importJSON" type="file" accept=".json,application/json" onchange="importJSONFile(event)"></label>
+<div id="backupStatus" class="small"></div></div></section>
+
+
+<section id="beta" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button>
+<div class="card"><h2>🧪 条件研究・ベータ検証</h2>
+<div class="notice"><b>新しい攻略法を自由に作って検証できます。</b><br>既存データは変更せず、パターン・⑥⑦⑧・GAP・指数・頭数などを組み合わせて過去データを一括検証します。</div>
+<h3>① 条件名</h3><label><input id="betaName" value="新規ベータ条件" placeholder="例：②接近型 馬連"></label>
+<h3>② 対象パターン</h3>
+<div class="checkgrid" id="betaPatternChecks">
+<label class="check"><input class="bp" value="73A" type="checkbox"> 73A</label><label class="check"><input class="bp" value="73B" type="checkbox"> 73B</label><label class="check"><input class="bp" value="74A" type="checkbox"> 74A</label><label class="check"><input class="bp" value="74B" type="checkbox"> 74B</label><label class="check"><input class="bp" value="82B" type="checkbox"> 82B</label><label class="check"><input class="bp" value="83B" type="checkbox"> 83B</label><label class="check"><input class="bp" value="84B" type="checkbox"> 84B</label>
+</div>
+<label style="margin-top:8px">その他・自由入力（カンマ区切り）<input id="bCustomPatterns" placeholder="例：82A,自作A"></label>
+<div class="small">※自由入力名は、保存データの basePattern または pattern と一致したものを対象にします。</div>
+<h3>③ ⑥⑦⑧などの終了順位</h3>
+<label><input id="bEnd50" placeholder="例：6,7,8　（空欄なら指定なし）"></label>
+<h3>④ GAP条件</h3>
+<div class="grid">
+<label>1-2 GAP<input id="bG12" placeholder="例：>=5"></label><label>2-3 GAP<input id="bG23" placeholder="例：<=10"></label>
+<label>3-4 GAP<input id="bG34" placeholder="例：3-9"></label><label>4-5 GAP<input id="bG45" placeholder="例：>=3"></label>
+<label>5-9 GAP<input id="bG59" placeholder="例：<=10"></label><label>6-7 GAP<input id="bG67" placeholder="例：>=3"></label>
+</div>
+<h3>⑤ 指数・頭数条件</h3><div class="grid">
+<label>3位指数 最小<input id="bI3Min" type="number" placeholder="例：60"></label><label>3位指数 最大<input id="bI3Max" type="number" placeholder="例：64"></label>
+<label>頭数 最小<input id="bNMin" type="number" placeholder="例：9"></label><label>頭数 最大<input id="bNMax" type="number" placeholder="例：12"></label>
+</div>
+<h3>⑥ 検証する買い目</h3>
+<label>券種<select id="bBetType"><option value="3f">3連複</option><option value="3t">3連単</option><option value="umaren">馬連</option><option value="umatan">馬単</option></select></label>
+<label>組み合わせ（指数順位）<input id="bFormula" value="1 / 2,3,4 / 5,6,7,8" placeholder="3連複：1 / 2,3,4 / 5,6,7,8　馬連：2 / 5,6,7,8　馬単：2 > 5,6,7,8"></label>
+<div class="small">3連複は「1 / 2,3,4 / 5,6,7,8」、3連単は「1 > 5,6,7,8 > 5,6,7,8」、馬連は「2 / 5,6,7,8」、馬単は「2 > 5,6,7,8」の形式。</div>
+<button onclick="runBetaPreview()">🔍 今すぐベータチェック</button><button class="hit" onclick="saveBeta()">💾 この条件を保存</button><div id="betaPreview"></div></div>
+<div class="card"><h3>保存したベータ条件</h3><div id="betaSaved"></div></div></section>
+<section id="analysis" class="page"><button class="back gray" onclick="go('home')">← トップへ戻る</button><div class="card"><h2>📈 データ分析</h2><div id="analysisbox"></div></div></section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id),KEY='70GAP_REVISION_MENU_V1';
+$('date').value=new Date().toISOString().slice(0,10);$('hdate').value=$('date').value;
+let current=[];
+function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');if(id==='buy')renderBuys();if(id==='select'){if(!$('selectDate').value)$('selectDate').value=$('date').value;renderSavedSelection();}if(id==='stats')showStats('today');if(id==='history')renderHistory();if(id==='analysis')renderAnalysis();if(id==='beta')renderBetas();if(id==='resultImport'){ $('riDate').value=$('date').value; }}
+function getData(){try{let v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch(e){console.error(e);return []}}function saveData(a){localStorage.setItem(KEY,JSON.stringify(a))}
+function getBetas(){try{let v=JSON.parse(localStorage.getItem(KEY+'_BETAS')||'[]');return Array.isArray(v)?v:[]}catch(e){return []}}
+function saveBetas(a){localStorage.setItem(KEY+'_BETAS',JSON.stringify(Array.isArray(a)?a:[]))}
+function exportJSON(){
+ const data=getData();
+ const payload={version:'70GAP_BACKUP_V2',exportedAt:new Date().toISOString(),data,betas:getBetas()};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='70GAP_backup_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function importJSONFile(ev){
+ const file=ev.target.files&&ev.target.files[0];if(!file)return;
+ const reader=new FileReader();
+ reader.onload=()=>{
+  try{
+   const raw=JSON.parse(reader.result);
+   let data=null,betas=null;
+   if(Array.isArray(raw)) data=raw;
+   else if(raw&&Array.isArray(raw.data)) {data=raw.data;betas=Array.isArray(raw.betas)?raw.betas:null;}
+   else if(raw&&Array.isArray(raw.records)) {data=raw.records;betas=Array.isArray(raw.betas)?raw.betas:null;}
+   if(!Array.isArray(data)) throw new Error('70GAPのデータ配列が見つかりません');
+   const clean=data.filter(x=>x&&typeof x==='object'&&x.date!=null&&x.place!=null&&x.race!=null);
+   if(!clean.length && data.length) throw new Error('有効なレースデータを確認できません');
+   saveData(clean);
+   if(betas) saveBetas(betas);
+   const dates=clean.map(x=>x.date).filter(Boolean).sort();
+   if(dates.length){$('date').value=dates[dates.length-1];$('hdate').value=dates[dates.length-1];$('selectDate').value=dates[dates.length-1];}
+   $('status').textContent='JSON復元完了：'+clean.length+'件';
+   alert('JSONを復元しました。\n'+clean.length+'件のレースデータを読み込みました。');
+   renderSavedSelection();renderBuys();renderHistory();renderAnalysis();showStats('today');renderBetas();
+  }catch(err){console.error(err);alert('JSONの復元に失敗しました。\n'+err.message+'\n\n70GAPで書き出したJSONファイルを選択してください。');}
+  ev.target.value='';
+ };
+ reader.readAsText(file,'UTF-8');
+}
+
+function splitRaces(t){let m=[...t.matchAll(/(?:^|\n)\s*(\d{1,2})\s*R\s*(?:\n|$)/g)];return m.map((x,i)=>({race:+x[1],text:t.slice(x.index,i+1<m.length?m[i+1].index:t.length)}))}
+function parseBlock(b){let l=b.text.split(/\r?\n/),s=l.findIndex(x=>x.includes('馬番'));if(s<0)return[];let n=[];for(let i=s+1;i<l.length;i++)n.push(...((l[i].match(/\d+/g)||[]).map(Number)));let a=[];for(let i=0;i+1<n.length;i+=2){let h=n[i],ix=n[i+1];if(h>=1&&h<=18&&ix>=40&&ix<=99)a.push({horse:h,index:ix})}let seen=new Set();return a.filter(x=>!seen.has(x.horse)&&seen.add(x.horse)).sort((x,y)=>y.index-x.index)}
+function end50(a){let z=0;a.forEach((x,i)=>{if(Math.floor(x.index/10)===5)z=i+1});return z}
+function pattern(a){if(a.length<5)return null;let b=a.map(x=>Math.floor(x.index/10)),e=end50(a);if(![5,6,7,8].includes(e))return null;let rules=[['73A',[7,7,6,5]],['74A',[7,7,6,6,5]],['73B',[7,6,6,5]],['74B',[7,6,6,6,5]],['83B',[8,6,6,5]],['84B',[8,6,6,6,5]]];for(const [n,r] of rules)if(r.every((v,i)=>b[i]===v))return n;return null}
+function boundary57(a){
+ if(!a||a.length<9)return null;
+ const base=Number(a[4]?.index); if(!Number.isFinite(base))return null;
+ const threshold=base-9;
+ let count=0;
+ for(let i=5;i<9;i++){const v=Number(a[i]?.index);if(Number.isFinite(v)&&v>=threshold)count++;}
+ return 5+count;
+}
+function boundaryType(a,p){if(!a||a.length<9||!['83B','84B'].includes(p))return null;const base=Number(a[4]?.index||0)-9;let b=5;for(let i=5;i<=8;i++){if(Number(a[i]?.index||0)>=base)b=i+1;}return b>=6&&b<=9?b:null;}
+function buyType(a,p){if(!p||a.length<9)return null;if(['83B','84B'].includes(p)){const b=boundaryType(a,p);return b===6?'A 超上位型⑥':b===7?'B 上位濃厚型⑦':(b===8||b===9)?'C 高配当馬単3連複型⑧⑨':null;}let g45=a[3].index-a[4].index,g59=a[4].index-a[8].index;if(a[2].index<=64&&g45>=3&&g45<=9&&g59<=10)return'高配当3連複';if(g59>=11)return'上位決着';return null;}
+
+function label(x){let q=['','','','','','⑤','⑥','⑦','⑧'];return x.pattern?(x.pattern+(q[x.end]||'')):'非該当'}
+function gapInfo(a){
+ if(!a||a.length<9)return null;
+ let g=(i,j)=>Number(a[i-1]?.index||0)-Number(a[j-1]?.index||0);
+ return {g12:g(1,2),g23:g(2,3),g34:g(3,4),g45:g(4,5),g56:g(5,6),g67:g(6,7),g78:g(7,8),g59:g(5,9),third:a[2]?.index||0,end50:end50(a)};
+}
+function conditionChecks(x){
+ let a=x.arr||[],g=gapInfo(a),p=x.basePattern||String(x.pattern||'').replace(/[⑤⑥⑦⑧]$/,'');
+ if(!g)return '<div class="mini">指数表データ不足のため条件チェック不可</div>';
+ let checks=[
+  ['基本型：'+(p||'非該当'),!!p],
+  ['50s終了：'+g.end50+'位（⑤〜⑧）',[5,6,7,8].includes(g.end50)],
+  ['上位決着型：5〜9位GAP ≥ 11',g.g59>=11],
+  ['下位密集：5〜9位GAP ≤ 10',g.g59<=10],
+  ['3位指数 ≤ 64',g.third<=64],
+  ['4〜5位GAP：3〜9',g.g45>=3&&g.g45<=9],
+  ['5〜6位GAP ≥ 3',g.g56>=3],
+  ['5〜6位GAP ＞ 6〜7位GAP',g.g56>g.g67],
+  ['1〜2位GAP ≥ 5',g.g12>=5],
+  ['1〜2位GAP ＞ 2〜3位GAP',g.g12>g.g23]
+ ];
+ return '<div class="checkgrid">'+checks.map(c=>`<div class="check ${c[1]?'ok':'no'}">${c[1]?'✓':'－'} ${c[0]}</div>`).join('')+'</div><div class="mini">GAP：1-2=${g.g12} / 2-3=${g.g23} / 3-4=${g.g34} / 4-5=${g.g45} / 5-6=${g.g56} / 6-7=${g.g67} / 7-8=${g.g78} / 5-9=${g.g59}</div>';
+}
+function indexTable(x){let a=x.arr||[];if(!a.length)return '<div class="mini">指数表データなし</div>';return `<table><tr><th>指数順位</th>${a.slice(0,9).map((_,i)=>'<th>'+(i+1)+'位</th>').join('')}</tr><tr><th>馬番</th>${a.slice(0,9).map(v=>'<td>'+v.horse+'</td>').join('')}</tr><tr><th>指数</th>${a.slice(0,9).map(v=>'<td><b>'+v.index+'</b></td>').join('')}</tr></table>`;}
+function payoutDisplay(x){
+ let a=[];
+ if(Number(x.payoutUmaren||0)>0)a.push(`馬連 ${Number(x.payoutUmaren).toLocaleString()}円`);
+ if(Number(x.payoutUmatan||0)>0)a.push(`馬単 ${Number(x.payoutUmatan).toLocaleString()}円`);
+ if(Number(x.payout||0)>0)a.push(`3連複 ${Number(x.payout).toLocaleString()}円`);
+ if(Number(x.payoutTrifecta||0)>0)a.push(`3連単 ${Number(x.payoutTrifecta).toLocaleString()}円`);
+ return a.length?a.join(' ／ '):'払戻未入力';
+}
+function selectionBet(x){
+ if(!x.type)return '';
+ return `<h4 style="margin:9px 0 3px">買い目</h4><div class="bet">${bet(x)}</div>`;
+}
+function renderSavedSelection(){const date=$("selectDate")?.value||$("date").value,place=($("selectPlace")?.value||'').trim();const all=getData().filter(x=>x.date===date&&(!place||x.place===place));if(!all.length){$("tags").innerHTML='この日付の保存データはありません。';$("detail").innerHTML='';return;}const groups={};all.slice().sort((a,b)=>String(a.place).localeCompare(String(b.place),'ja')||Number(a.race)-Number(b.race)).forEach(x=>(groups[x.place]??=[]).push(x));$("tags").innerHTML=Object.entries(groups).map(([pl,rs])=>`<div class="placegroup">📍 ${pl}　${rs.length}レース</div>`+rs.map(x=>`<span class="tag ${x.type?'buytag':''}">${x.race}R ${x.pattern||'非該当'} ${x.type?'🟢 '+x.type:'⚪ 非購入・見送り'}</span>`).join('')).join('');$("detail").innerHTML=Object.entries(groups).map(([pl,rs])=>`<section><h3>📍 ${pl}</h3>`+rs.map(x=>`<div class="race ${x.type?'buybox':''}"><b>${x.race}R　${x.pattern||'非該当'}　${x.type||'非購入・見送り'}</b>${x.type?selectionBet(x):''}${indexTable(x)}<h4 style="margin:9px 0 3px">結果・払戻</h4><div class="small">${ticketOutcomeText(x)}　｜　反映払戻 ${creditedPayout(x).toLocaleString()}円</div></div>`).join('')+'</section>').join('');}
+
+function parseAll(){let b=splitRaces($('paste').value.trim());current=b.map(x=>{let a=parseBlock(x),p=pattern(a);return{race:x.race,arr:a,pattern:p,end:end50(a),type:buyType(a,p)}});$('status').textContent=b.length+'レースを解析しました。';storePurchases();renderSelect();renderBuys();go('select')}
+function storePurchases(){
+ let d=getData(),date=$("date").value,place=$("place").value;
+ current.forEach(x=>{
+  let i=d.findIndex(v=>v.date===date&&v.place===place&&Number(v.race)===Number(x.race));
+  let old=i>=0?d[i]:{};
+  let o={...old,date,place,race:x.race,pattern:label(x),basePattern:x.pattern||null,boundary57:boundary57(x.arr),type:x.type||null,selection:true,stake:old.stake??(x.type==='高配当3連複'?3000:x.type==='馬連'?1000:x.type==='超上位型⑥'?3000:x.type==='上位濃厚型⑦'?3000:x.type==='高配当馬単3連複型⑧⑨'?2000:x.type?2000:0),hit:old.hit??null,payout:old.payout??0,arr:x.arr};
+  if(i>=0)d[i]=o;else d.push(o);
+ });
+ saveData(d);
+}
+
+function renderSelect(){ $("selectDate").value=$("date").value; $("selectPlace").value=$("place").value; renderSavedSelection();}
+
+function bet(x){let a=x.arr;if(!a||a.length<9)return'買い目データなし';const p=String(x.basePattern||'');if(['83B','84B'].includes(p)){const bt=x.type||'';if(bt.startsWith('A '))return `【A 超上位型⑥】\n■ 3連単 24点\n①→②③④→④⑤⑥\n①→④⑤⑥→②③④\n②③④→①→④⑤⑥\n\n■ 3連複 6点\n②－③④⑤⑥－③④⑤⑥`;if(bt.startsWith('B '))return `【B 上位濃厚型⑦】\n■ 3連単 24点\n①→③④⑤→⑤⑥⑦\n①→⑤⑥⑦→③④⑤\n③④⑤→①→⑤⑥⑦\n\n■ 3連複 3点（各200円）\n①－②－⑤／⑥／⑦`;if(bt.startsWith('C '))return `【C 高配当馬単3連複型⑧⑨】\n■ 馬単 10点\n①②→⑤⑥⑦⑧⑨\n\n■ 3連複 10点\n①－②③－⑤⑥⑦⑧⑨`;}let h=n=>a[n-1]?.horse,G=ns=>ns.map(h).filter(Boolean).join('・'),B=[2,3,4].map(h).filter(Boolean),C=[4,5].map(h).filter(Boolean),B4=[2,3,4,5].map(h).filter(Boolean),top=[1,2,3,4].map(h).filter(Boolean),last=[5,6,7,8,9].map(h).filter(Boolean);if(x.type==='高配当3連複')return `【高配当3連複】\n1列目：${top.join('・')}\n2列目：${top.join('・')}\n3列目：${last.join('・')}`;if(x.type==='上位決着')return `【上位決着】\n■ 3連単\n${h(1)}→${B.join('・')}→${C.join('・')}\n${h(1)}→${C.join('・')}→${B.join('・')}\n${B.join('・')}→${h(1)}→${C.join('・')}\n■ 3連複\n${B.join('・')} BOX\n${B4.join('・')} BOX`;return '';}
+
+function renderBuys(){let a=getData().filter(x=>x.date===$("date").value&&x.type);$("buys").innerHTML=a.length?a.map((x,i)=>`<div class="race buybox"><b>${x.place}${x.race}R　${x.pattern||''}　${x.type||'購入'}</b><div class="bet">${bet(x)}</div><button class="gray" onclick="showIndexByKey('${x.place}',${x.race})">📊 当該レースの指数表</button><table><tr><th colspan="4">結果入力</th></tr><tr><th>着順</th><th>馬番</th><th colspan="2">着順（指数順位）</th></tr><tr><td>1着</td><td><input id="rh_${i}_1" type="number" value="${x.resultHorses?.[0]??''}"></td><td colspan="2"><input id="rk_${i}_1" type="number" value="${x.firstRank??''}" placeholder="何位"></td></tr><tr><td>2着</td><td><input id="rh_${i}_2" type="number" value="${x.resultHorses?.[1]??''}"></td><td colspan="2"><input id="rk_${i}_2" type="number" value="${x.secondRank??''}" placeholder="何位"></td></tr><tr><td>3着</td><td><input id="rh_${i}_3" type="number" value="${x.resultHorses?.[2]??''}"></td><td colspan="2"><input id="rk_${i}_3" type="number" value="${x.thirdRank??''}" placeholder="何位"></td></tr></table><table><tr><th>券種</th><th>払戻額</th></tr><tr><td>馬連</td><td><input id="pu_${i}_umaren" type="number" value="${x.payoutUmaren??''}" placeholder="円"></td></tr><tr><td>馬単</td><td><input id="pu_${i}_umatan" type="number" value="${x.payoutUmatan??''}" placeholder="円"></td></tr><tr><td>3連複</td><td><input id="pu_${i}_3f" type="number" value="${x.payout??''}" placeholder="円"></td></tr><tr><td>3連単</td><td><input id="pu_${i}_3t" type="number" value="${x.payoutTrifecta??''}" placeholder="円"></td></tr></table>${(['A 超上位型⑥','B 上位濃厚型⑦','C 高配当馬単3連複型⑧⑨'].includes(x.type)?'':conditionChecks(x))}<button class="hit" onclick="saveManualResult(${i},true)">◯ 的中</button><button class="red" onclick="saveManualResult(${i},false)">× 不的中</button><button class="gray" onclick="saveManualResult(${i},null)">💾 結果保存</button><button class="gray" onclick="editRecord('${x.place}',${x.race})">✏️ 訂正</button><button class="red" onclick="deleteRecord('${x.place}',${x.race})">🗑 削除</button><div class="small">購入 ${Number(x.stake||0).toLocaleString()}円｜馬連 ${Number(x.payoutUmaren||0).toLocaleString()}円｜馬単 ${Number(x.payoutUmatan||0).toLocaleString()}円｜3連複 ${Number(x.payout||0).toLocaleString()}円｜3連単 ${Number(x.payoutTrifecta||0).toLocaleString()}円</div></div>`).join(''):'購入レースはありません。'}
+
+function ticketResults(x){
+ let f=[Number(x.firstRank),Number(x.secondRank),Number(x.thirdRank)];
+ if(f.some(v=>!v)) return {known:false,umaren:null,umatan:null,sanfuku:null,santan:null};
+ let set=new Set(f);
+ let r={known:true,umaren:null,umatan:null,sanfuku:null,santan:null};
+ let t=String(x.type||'');
+ if(t.includes('高配当3連複')) r.sanfuku=[1,2,3,4].some(v=>set.has(v)) && [5,6,7,8,9].some(v=>set.has(v));
+ if(t.includes('上位決着')){
+   const B=[2,3,4], C=[4,5];
+   r.santan=(f[0]===1 && B.includes(f[1]) && C.includes(f[2])) || (f[0]===1 && C.includes(f[1]) && B.includes(f[2])) || (B.includes(f[0]) && f[1]===1 && C.includes(f[2]));
+   r.sanfuku=(f.every(v=>[2,3,4].includes(v)) || f.every(v=>[2,3,4,5].includes(v)));
+ }
+ if(t.includes('超上位型⑥')){
+   r.santan=(f[0]===1&&[2,3,4].includes(f[1])&&[4,5,6].includes(f[2]))||(f[0]===1&&[4,5,6].includes(f[1])&&[2,3,4].includes(f[2]))||([2,3,4].includes(f[0])&&f[1]===1&&[4,5,6].includes(f[2]));
+   const u=new Set([2,3,4,5,6]); r.sanfuku=(u.has(f[0])&&u.has(f[1])&&u.has(f[2])&&f.includes(2));
+ }
+ if(t.includes('上位濃厚型⑦')){
+   r.santan=(f[0]===1&&[3,4,5].includes(f[1])&&[5,6,7].includes(f[2]))||(f[0]===1&&[5,6,7].includes(f[1])&&[3,4,5].includes(f[2]))||([3,4,5].includes(f[0])&&f[1]===1&&[5,6,7].includes(f[2]));
+   r.sanfuku=([1,2].every(v=>f.includes(v))&&[5,6,7].some(v=>f.includes(v)));
+ }
+ if(t.includes('高配当馬単3連複型⑧⑨')){
+   r.umatan=([1,2].includes(f[0])&&[5,6,7,8,9].includes(f[1]));
+   r.sanfuku=([1,2].includes(f[0])&&[2,3,4].some(v=>f.includes(v))&&[5,6,7,8,9].some(v=>f.includes(v)));
+ }
+ // 馬連・馬単は、自由設定式の買い目が保存されている場合はその式を優先。
+ if(x.betFormula){
+   let typ=x.betFormulaType|| (t.includes('馬単')?'umatan':t.includes('馬連')?'umaren':'');
+   let gs=parseGroups(x.betFormula,typ);
+   if(typ==='umaren'&&gs.length===2) r.umaren=gs[0].some(v=>f.slice(0,2).includes(v))&&gs[1].some(v=>f.slice(0,2).includes(v));
+   if(typ==='umatan'&&gs.length===2) r.umatan=gs[0].includes(f[0])&&gs[1].includes(f[1]);
+ }
+ return r;
+}
+function creditedPayout(x){
+ let r=ticketResults(x),p=0;
+ if(!r.known){
+   // 着順（指数順位）が未入力の古いデータは、券種に対応する払戻だけを使用。
+   let t=String(x.type||'');
+   if(t.includes('馬連')) return Number(x.payoutUmaren||0);
+   if(t.includes('馬単')) return Number(x.payoutUmatan||0);
+   if(t.includes('高配当3連複')) return Number(x.payout||0);
+   if(t.includes('上位決着')) return Number(x.payout||0)+Number(x.payoutTrifecta||0);
+   return Number(x.payout||0);
+ }
+ if(r.umaren===true) p+=Number(x.payoutUmaren||0);
+ if(r.umatan===true) p+=Number(x.payoutUmatan||0);
+ if(r.sanfuku===true) p+=Number(x.payout||0);
+ if(r.santan===true) p+=Number(x.payoutTrifecta||0);
+ return p;
+}
+function creditedHit(x){
+ let r=ticketResults(x); if(!r.known) return x.hit===true;
+ return [r.umaren,r.umatan,r.sanfuku,r.santan].some(v=>v===true);
+}
+function ticketOutcomeText(x){
+ let r=ticketResults(x);
+ if(!r.known) return x.hit===true?'◯ 的中':x.hit===false?'× 不的中':'未入力';
+ let a=[];
+ if(Number(x.payoutUmaren||0)>0)a.push('馬連 '+(r.umaren?'◯':'×'));
+ if(Number(x.payoutUmatan||0)>0)a.push('馬単 '+(r.umatan?'◯':'×'));
+ if(Number(x.payout||0)>0)a.push('3連複 '+(r.sanfuku?'◯':'×'));
+ if(Number(x.payoutTrifecta||0)>0)a.push('3連単 '+(r.santan?'◯':'×'));
+ return a.length?a.join(' ／ '):'券種・払戻未入力';
+}
+function saveManualResult(idx,hit){let visible=getData().filter(x=>x.date===$('date').value&&x.type),target=visible[idx];if(!target)return;let all=getData(),i=all.findIndex(x=>x.date===target.date&&x.place===target.place&&Number(x.race)===Number(target.race));if(i<0)return;target.resultHorses=[1,2,3].map(n=>+($('rh_'+idx+'_'+n).value||0)).filter(Boolean);target.firstRank=+$('rk_'+idx+'_1').value||null;target.secondRank=+$('rk_'+idx+'_2').value||null;target.thirdRank=+$('rk_'+idx+'_3').value||null;target.payoutUmaren=+$('pu_'+idx+'_umaren').value||0;target.payoutUmatan=+$('pu_'+idx+'_umatan').value||0;target.payout=+$('pu_'+idx+'_3f').value||0;target.payoutTrifecta=+$('pu_'+idx+'_3t').value||0;let tr=ticketResults(target);target.ticketHits={umaren:tr.umaren,umatan:tr.umatan,sanfuku:tr.sanfuku,santan:tr.santan};target.creditedPayout=creditedPayout(target);target.hit=tr.known?creditedHit(target):(hit!==null?hit:target.hit);all[i]=target;saveData(all);renderBuys();renderSavedSelection();}
+window.result=(place,race,hit)=>{let x=getData().find(v=>v.date===$('date').value&&v.place===place&&Number(v.race)===Number(race));if(!x)return;let i=getData().findIndex(v=>v===x);if(hit){let p=Number(x.payout||0);if(!p&&Number(x.payoutUmaren||0)+Number(x.payoutUmatan||0)+Number(x.payoutTrifecta||0)===0){alert('払戻額を入力してください');return}}x.hit=hit;saveData(getData());renderBuys();}
+window.editRecord=(place,race)=>{let x=getData().find(v=>v.date===$('date').value&&v.place===place&&v.race===race);if(!x)return;$('hdate').value=x.date;$('hplace').value=x.place;$('hrace').value=x.race;$('hpattern').value=x.pattern;$('htype').value=x.type;$('hstake').value=x.stake;$('hresult').value=x.hit===true?'hit':x.hit===false?'miss':'';$('hpayout').value=x.payout;$('addbox').classList.remove('hidden');go('history')};window.deleteRecord=(place,race)=>{if(!confirm('このレースを削除しますか？'))return;saveData(getData().filter(x=>!(x.date===$('date').value&&x.place===place&&x.race===race)));renderBuys();renderHistory()};
+function calc(a){let decided=a.filter(x=>ticketResults(x).known||x.hit!==null),hits=a.filter(x=>creditedHit(x)).length,s=a.reduce((z,x)=>z+Number(x.stake||0),0),p=a.reduce((z,x)=>z+creditedPayout(x),0);return `<div class="stats"><div class="stat">購入R<div class="big">${a.length}</div></div><div class="stat">的中率<div class="big">${decided.length?(hits/decided.length*100).toFixed(1):'0.0'}%</div></div><div class="stat">購入額<div class="big">${s.toLocaleString()}円</div></div><div class="stat">払戻額<div class="big">${p.toLocaleString()}円</div></div><div class="stat">収支<div class="big">${(p-s>=0?'+':'')+(p-s).toLocaleString()}円</div></div><div class="stat">回収率<div class="big">${s?(p/s*100).toFixed(1):'0.0'}%</div></div></div>`}
+function showStats(mode){let a=getData().filter(x=>x.type),dt=new Date($('date').value+'T00:00:00');if(mode==='today')a=a.filter(x=>x.date===$('date').value);if(mode==='week'){let st=new Date(dt);st.setDate(dt.getDate()-((dt.getDay()+6)%7));let en=new Date(st);en.setDate(st.getDate()+7);a=a.filter(x=>{let d=new Date(x.date+'T00:00:00');return d>=st&&d<en})}if(mode==='month')a=a.filter(x=>x.date.slice(0,7)===$('date').value.slice(0,7));if(mode==='year')a=a.filter(x=>x.date.slice(0,4)===$('date').value.slice(0,4));$('statbox').innerHTML=calc(a)}
+function addHistory(){let d=getData(),r=$('hresult').value,o={date:$('hdate').value,place:$('hplace').value,race:+$('hrace').value,pattern:$('hpattern').value,type:$('htype').value,stake:+$('hstake').value||0,hit:r==='hit'?true:r==='miss'?false:null,payout:+$('hpayout').value||0,arr:[]};if(!o.date||!o.place||!o.race){alert('日付・開催地・レース番号を入力してください');return}d.push(o);saveData(d);$('addbox').classList.add('hidden');renderHistory()}
+function renderHistory(){let a=getData();$("historylist").innerHTML=a.length?a.map((x,i)=>`<div class="race"><b>${x.date} ${x.place}${x.race}R ${x.pattern||'非該当'}</b><br>${x.type||'非購入・見送り'}｜${x.hit===true?'◯ 的中':x.hit===false?'× 不的中':'未入力'}｜購入 ${Number(x.stake||0).toLocaleString()}円｜反映払戻 ${creditedPayout(x).toLocaleString()}円 <button class="gray" onclick="showIndex(${i})">📊 指数表</button> <button class="gray" onclick="editHistory(${i})">✏️ 訂正</button><button class="red" onclick="deleteHistory(${i})">🗑 削除</button></div>`).join(''):'保存データはありません。'}
+
+window.editHistory=i=>{let x=getData()[i];$('hdate').value=x.date;$('hplace').value=x.place;$('hrace').value=x.race;$('hpattern').value=x.pattern;$('htype').value=x.type;$('hstake').value=x.stake;$('hresult').value=x.hit===true?'hit':x.hit===false?'miss':'';$('hpayout').value=x.payout;$('addbox').classList.remove('hidden')};window.deleteHistory=i=>{let a=getData();a.splice(i,1);saveData(a);renderHistory()}
+function grouped(a,fn){let m={};a.forEach(x=>{let k=fn(x);(m[k]??=[]).push(x)});return Object.entries(m).map(([k,v])=>`<div class="race"><b>${k}</b>${calc(v)}</div>`).join('')}
+function newStrategyRank(x){
+ if(!x||!['83B','84B'].includes(baseOf(x)))return null;
+ let b=x.boundary57;
+ if(!b&&x.arr?.length>=9)b=boundaryType(x.arr,baseOf(x));
+ return b;
+}
+function newStrategyHit(x,kind){
+ let b=newStrategyRank(x),f=[Number(x.firstRank),Number(x.secondRank),Number(x.thirdRank)];
+ if(!b||f.some(v=>!v))return null;
+ if(kind==='A'){
+  // 3T: ①→②③④→④⑤⑥ / ①→④⑤⑥→②③④ / ②③④→①→④⑤⑥
+  return (f[0]===1&&[2,3,4].includes(f[1])&&[4,5,6].includes(f[2]))||
+         (f[0]===1&&[4,5,6].includes(f[1])&&[2,3,4].includes(f[2]))||
+         ([2,3,4].includes(f[0])&&f[1]===1&&[4,5,6].includes(f[2]));
+ }
+ if(kind==='B'){
+  return (f[0]===1&&[3,4,5].includes(f[1])&&[5,6,7].includes(f[2]))||
+         (f[0]===1&&[5,6,7].includes(f[1])&&[3,4,5].includes(f[2]))||
+         ([3,4,5].includes(f[0])&&f[1]===1&&[5,6,7].includes(f[2]));
+ }
+ if(kind==='C'){
+  // 3F: ①－②③－⑤⑥⑦⑧⑨
+  let sf=[1,2,3].some(v=>f.includes(v))&&f.includes(1)&&[2,3].some(v=>f.includes(v))&&[5,6,7,8,9].some(v=>f.includes(v));
+  // 馬単: ①②→⑤⑥⑦⑧⑨
+  let umatan=([1,2].includes(f[0])&&[5,6,7,8,9].includes(f[1]));
+  return {sanfuku:sf,umatan:umatan};
+ }
+ if(kind==='A3F'){
+  // ②－③④⑤⑥－③④⑤⑥ (6 combinations)
+  return f.includes(2)&&f.filter(v=>[3,4,5,6].includes(v)).length>=2;
+ }
+ if(kind==='B3F'){
+  return f.includes(1)&&f.includes(2)&&[5,6,7].some(v=>f.includes(v));
+ }
+ return null;
+}
+function newStrategyPayout(x,kind){
+ if(kind==='A'||kind==='B')return Number(x.payoutTrifecta||0);
+ if(kind==='A3F'||kind==='B3F')return Number(x.payoutSanfuku||x.payout||0);
+ if(kind==='C3F')return Number(x.payoutSanfuku||x.payout||0);
+ if(kind==='CUmatan')return Number(x.payoutUmatan||0);
+ return 0;
+}
+function newStrategyStats(rows,kind){
+ let complete=rows.filter(x=>newStrategyHit(x,kind)!==null),hits=complete.filter(x=>newStrategyHit(x,kind));
+ let stake=kind==='A'?2700:kind==='A3F'?300:kind==='B'?2700:kind==='B3F'?600:kind==='CUmatan'?1000:kind==='C3F'?1000:0;
+ let pay=hits.reduce((z,x)=>z+newStrategyPayout(x,kind),0);
+ let known=hits.filter(x=>newStrategyPayout(x,kind)>0).length;
+ return {n:rows.length,c:complete.length,h:hits.length,rate:complete.length?hits.length/complete.length*100:0,stake,pay,known,inv:rows.length*stake,roi:rows.length&&pay?pay/(rows.length*stake)*100:null};
+}
+function newStrategyHTML(){
+ let base=getData().filter(x=>['83B','84B'].includes(baseOf(x)));
+ let groups={A:[],B:[],C:[],A3F:[],B3F:[],C3F:[],CUmatan:[]};
+ base.forEach(x=>{let b=newStrategyRank(x);if(b===6){groups.A.push(x);groups.A3F.push(x)}else if(b===7){groups.B.push(x);groups.B3F.push(x)}else if(b===8||b===9){groups.C.push(x);groups.C3F.push(x);groups.CUmatan.push(x)}});
+ let title=(name,st)=>`<div class="race"><b>${name}</b><br>対象 ${st.n}R｜判定可能 ${st.c}R｜的中 ${st.h}R｜的中率 ${st.rate.toFixed(1)}%｜投資 ${st.inv.toLocaleString()}円｜記録済み払戻 ${st.pay.toLocaleString()}円${st.roi!==null?`｜記録済み回収率 ${st.roi.toFixed(1)}%`:''}${st.h>st.known?`<div class="small">※払戻未登録の的中 ${st.h-st.known}R を含むため、回収率は参考値です。</div>`:''}</div>`;
+ let a6=groups.A, a7=groups.B, a89=groups.C;
+ return `<h3>🆕 新方式・過去再分析（83B・84B）</h3><div class="notice">5位指数−9を基準に、6〜9位の指数が基準以上（ジャスト含む）の頭数で⑥⑦⑧⑨を再判定。保存済みの着順データから新しい買い方の的中状況を再計算します。</div>`+
+ title('A 超上位型⑥｜3連単24点',newStrategyStats(a6,'A'))+
+ title('A 超上位型⑥｜3連複6点',newStrategyStats(a6,'A3F'))+
+ title('B 上位濃厚型⑦｜3連単24点',newStrategyStats(a7,'B'))+
+ title('B 上位濃厚型⑦｜3連複3点',newStrategyStats(a7,'B3F'))+
+ title('C 高配当馬単3連複型⑧⑨｜馬単10点',newStrategyStats(a89,'CUmatan'))+
+ title('C 高配当馬単3連複型⑧⑨｜3連複10点',newStrategyStats(a89,'C3F'));
+}
+function renderAnalysis(){let a=getData();$('analysisbox').innerHTML=newStrategyHTML()+'<h3>条件別</h3>'+grouped(a,x=>String(x.pattern||'非該当').replace(/[⑤⑥⑦⑧]$/,''))+'<h3>⑥⑦⑧別</h3>'+grouped(a,x=>(x.pattern.match(/[⑤⑥⑦⑧]$/)||['その他'])[0])+'<h3>開催地別</h3>'+grouped(a,x=>x.place)+'<h3>購入方式別</h3>'+grouped(a,x=>x.type)}
+
+function showIndex(i){let x=getData()[i];if(!x)return;showIndexRecord(x);}
+function showIndexByKey(place,race){let x=getData().find(v=>v.date===$("date").value&&v.place===place&&Number(v.race)===Number(race));if(x)showIndexRecord(x);}
+function showIndexRecord(x){let m=document.createElement('div');m.className='indexModal';m.innerHTML=`<div class="modalBox"><button class="gray" onclick="this.closest('.indexModal').remove()">✕ 閉じる</button><h3>${x.date} ${x.place}${x.race}R　${x.pattern||'非該当'}　${x.type||'非購入・見送り'}</h3>${indexTable(x)}<div class="mini">条件チェックは内部判定のみ</div></div>`;document.body.appendChild(m);}
+
+// ===== 条件研究・ベータ検証 自由設定版 =====
+function betaPatterns(){let a=[...document.querySelectorAll('.bp:checked')].map(x=>x.value);let c=($('bCustomPatterns').value||'').split(',').map(x=>x.trim()).filter(Boolean);return [...new Set(a.concat(c))]}
+function num(v){let n=Number(v);return Number.isFinite(n)?n:null}
+function gapOK(v,s){if(!s||!s.trim())return true;s=s.trim();if(s.includes('-')&&!s.startsWith('-')){let q=s.split('-').map(Number);if(q.length===2&&q.every(Number.isFinite))return v>=q[0]&&v<=q[1]}let m=s.match(/^(>=|<=|>|<|=)\s*(-?\d+(?:\.\d+)?)$/);if(m){let n=Number(m[2]);return m[1]==='>='?v>=n:m[1]==='<='?v<=n:m[1]==='>'?v>n:m[1]==='<'?v<n:v===n}let n=Number(s);return Number.isFinite(n)?v===n:true}
+function baseOf(x){return String(x.basePattern||String(x.pattern||'').replace(/[⑤⑥⑦⑧]$/,''))}
+function end50Of(x){if(!Array.isArray(x.arr))return null;let z=0;x.arr.forEach((v,i)=>{if(Math.floor(Number(v.index)/10)===5)z=i+1});return z||null}
+function betaConditionOK(x){let ps=betaPatterns();if(ps.length&&!ps.includes(baseOf(x))&&!ps.includes(String(x.pattern||'')))return false;let ends=($('bEnd50').value||'').split(',').map(Number).filter(Number.isFinite);if(ends.length&&!ends.includes(end50Of(x)))return false;let g=x.gaps||{};for(const [id,key] of [['bG12','g12'],['bG23','g23'],['bG34','g34'],['bG45','g45'],['bG59','g59'],['bG67','g67']]){let rule=$(id).value;if(rule){let v=Number(g[key]);if(!Number.isFinite(v)||!gapOK(v,rule))return false}}let i3=x.arr?.[2]?.index;if($('bI3Min').value!==''&&(i3==null||i3<Number($('bI3Min').value)))return false;if($('bI3Max').value!==''&&(i3==null||i3>Number($('bI3Max').value)))return false;let n=x.arr?.length||0;if($('bNMin').value!==''&&n<Number($('bNMin').value))return false;if($('bNMax').value!==''&&n>Number($('bNMax').value))return false;return true}
+function parseGroups(f,type){f=(f||'').trim();if(type==='umatan'){let z=f.split('>');return z.length===2?[z[0].split(',').map(Number).filter(Boolean),z[1].split(',').map(Number).filter(Boolean)]:[[],[]]}if(type==='3t'){let z=f.split('>');return z.length===3?z.slice(0,3).map(q=>q.split(',').map(Number).filter(Boolean)):[[],[],[]]}if(type==='umaren'){let z=f.split('/');return z.slice(0,2).map(q=>q.split(',').map(Number).filter(Boolean))}let z=f.split('/');return z.slice(0,3).map(q=>q.split(',').map(Number).filter(Boolean))}
+function betaHitCustom(x){let f=[Number(x.firstRank),Number(x.secondRank),Number(x.thirdRank)];if(f.some(v=>!v))return null;let type=$('bBetType').value,gs=parseGroups($('bFormula').value,type);if(type==='umaren'){return gs.length===2&&gs[0].some(v=>f.slice(0,2).includes(v))&&gs[1].some(v=>f.slice(0,2).includes(v))&&gs[0].every(v=>true)}if(type==='umatan'){return gs.length===2&&gs[0].includes(f[0])&&gs[1].includes(f[1])}if(type==='3t'){return gs.length===3&&gs[0].includes(f[0])&&gs[1].includes(f[1])&&gs[2].includes(f[2])}return gs.length===3&&gs[0].some(v=>f.includes(v))&&gs[1].some(v=>f.includes(v))&&gs[2].some(v=>f.includes(v))}
+function betaPayout(x){let t=$('bBetType').value;return Number(t==='umaren'?x.payoutUmaren||0:t==='umatan'?x.payoutUmatan||0:t==='3t'?x.payoutTrifecta||0:x.payout||x.payoutSanfuku||0)}
+function betaStatsCustom(){let all=getData().filter(betaConditionOK);let complete=all.filter(x=>betaHitCustom(x)!==null),hits=complete.filter(x=>betaHitCustom(x));let stake=$('bBetType').value==='3f'?1200:1000;let inv=all.length*stake,pay=hits.reduce((z,x)=>z+betaPayout(x),0);let ps=betaPatterns();let by={};ps.forEach(p=>{let r=all.filter(x=>baseOf(x)===p||String(x.pattern||'')===p),c=r.filter(x=>betaHitCustom(x)!==null),h=c.filter(x=>betaHitCustom(x));by[p]={r:r.length,c:c.length,h:h.length,rate:c.length?h.length/c.length*100:0,inv:r.length*stake,pay:h.reduce((z,x)=>z+betaPayout(x),0)}});return {all:all.length,complete:complete.length,hits:hits.length,rate:complete.length?hits.length/complete.length*100:0,inv,pay,net:pay-inv,roi:inv?pay/inv*100:0,by}}
+function betaStatsHTML2(st){let rows=Object.entries(st.by).map(([p,v])=>`<tr><td>${p}</td><td>${v.r}</td><td>${v.h}/${v.c}</td><td>${v.rate.toFixed(1)}%</td><td>${v.inv.toLocaleString()}円</td><td>${v.pay.toLocaleString()}円</td><td>${(v.pay-v.inv>=0?'+':'')+(v.pay-v.inv).toLocaleString()}円</td><td>${v.inv?(v.pay/v.inv*100).toFixed(1):'0.0'}%</td></tr>`).join('');return `<div class="stats"><div class="stat">対象<div class="big">${st.all}R</div></div><div class="stat">判定可能<div class="big">${st.complete}R</div></div><div class="stat">的中<div class="big">${st.hits}R</div></div><div class="stat">的中率<div class="big">${st.rate.toFixed(1)}%</div></div><div class="stat">投資<div class="big">${st.inv.toLocaleString()}円</div></div><div class="stat">払戻<div class="big">${st.pay.toLocaleString()}円</div></div><div class="stat">収支<div class="big">${st.net>=0?'+':''}${st.net.toLocaleString()}円</div></div><div class="stat">回収率<div class="big">${st.roi.toFixed(1)}%</div></div></div><h4>パターン別</h4><table><tr><th>型</th><th>対象</th><th>的中</th><th>的中率</th><th>投資</th><th>払戻</th><th>収支</th><th>回収率</th></tr>${rows||'<tr><td colspan="8">パターン指定なし</td></tr>'}</table>`}
+function runBetaPreview(){if(!betaPatterns().length&&![...document.querySelectorAll('.bp')].length){return}let st=betaStatsCustom();$('betaPreview').innerHTML='<h3>検証結果</h3>'+betaStatsHTML2(st)+'<div class="mini">条件一致Rを対象に仮想購入した場合の集計です。判定可能＝1〜3着の指数順位が保存されているレース。</div>'}
+function saveBeta(){let a=getBetas(),id=Date.now();let obj={id,name:$('betaName').value.trim()||'未命名ベータ',patterns:betaPatterns(),end50:$('bEnd50').value,g12:$('bG12').value,g23:$('bG23').value,g34:$('bG34').value,g45:$('bG45').value,g59:$('bG59').value,g67:$('bG67').value,i3min:$('bI3Min').value,i3max:$('bI3Max').value,nmin:$('bNMin').value,nmax:$('bNMax').value,betType:$('bBetType').value,formula:$('bFormula').value,createdAt:new Date().toISOString()};a.push(obj);saveBetas(a);renderBetas();runBetaPreview();alert('ベータ条件を保存しました。')}
+function deleteBeta(id){if(!confirm('このベータ条件を削除しますか？'))return;saveBetas(getBetas().filter(x=>x.id!==id));renderBetas()}
+function renderBetas(){let a=getBetas();$('betaSaved').innerHTML=a.length?a.map(x=>`<div class="race"><b>🟡 ${x.name}</b><div class="small">対象：${(x.patterns||[]).join('・')||'指定なし'}｜終了順位：${x.end50||'指定なし'}<br>GAP：1-2 ${x.g12||'-'} / 2-3 ${x.g23||'-'} / 3-4 ${x.g34||'-'} / 4-5 ${x.g45||'-'} / 5-9 ${x.g59||'-'} / 6-7 ${x.g67||'-'}<br>買い目：${x.betType||'3f'}｜${x.formula||''}</div><button class="red" onclick="deleteBeta(${x.id})">🗑 削除</button></div>`).join(''):'保存されたベータ条件はありません。'}
+</script>
+</body></html>
